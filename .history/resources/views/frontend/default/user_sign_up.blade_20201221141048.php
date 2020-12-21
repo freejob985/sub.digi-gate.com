@@ -57,7 +57,7 @@
 										<span class="aiz-rounded-check"></span>
 									</label>
 									<label class="aiz-radio">
-										<input type="radio" name="user_types[]" value="comprehensive"> {{ translate('comprehensive') }}
+										<input type="radio" name="user_types[]" value="client"> {{ translate('As A Client') }}
 										<span class="aiz-rounded-check"></span>
 									</label>
 								</div>

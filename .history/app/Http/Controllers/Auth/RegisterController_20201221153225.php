@@ -102,7 +102,7 @@ class RegisterController extends Controller
             $user_role->save();
         }
         if(in_array('comprehensive', $data['user_types'])) {
-            $role = Role::where('name', 'comprehensive')->first();
+            $role = Role::where('name', 'Client')->first();
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
             $user_role->role_id = $role->id;
