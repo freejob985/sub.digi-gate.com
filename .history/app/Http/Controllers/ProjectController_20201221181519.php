@@ -60,8 +60,7 @@ class ProjectController extends Controller
                     ->paginate(10);
             return view('frontend.default.user.freelancer.projects.my_running_project', compact('running_projects'));
         }   elseif(comprehensive()){
-            $projects = Project::where('client_user_id', Auth::user()->id)->where('biddable', '0')->open()->notcancel()->latest()->paginate(10);
-            return view('frontend.default.user.client.projects.my_running_project', compact('projects'));
+
         }
     }
 

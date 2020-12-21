@@ -59,9 +59,8 @@ class ProjectController extends Controller
                     ->distinct()
                     ->paginate(10);
             return view('frontend.default.user.freelancer.projects.my_running_project', compact('running_projects'));
-        }   elseif(comprehensive()){
-            $projects = Project::where('client_user_id', Auth::user()->id)->where('biddable', '0')->open()->notcancel()->latest()->paginate(10);
-            return view('frontend.default.user.client.projects.my_running_project', compact('projects'));
+         elseif(comprehensive()){
+
         }
     }
 
@@ -89,9 +88,6 @@ class ProjectController extends Controller
                     ->paginate(10);
 
             return view('frontend.default.user.freelancer.projects.my_cancelled_project', compact('cancelled_projects'));
-        } elseif(comprehensive()){
-            $projects = Project::where('client_user_id', Auth::user()->id)->where('cancel_status', '1')->latest()->paginate(10);
-            return view('frontend.default.user.client.projects.my_cancelled_project', compact('projects'));   
         }
 
     }
@@ -105,9 +101,6 @@ class ProjectController extends Controller
         elseif (isFreelancer()) {
             $completed_projects = getCompletedProjectsByFreelancer(Auth::user()->id)->paginate(10);
             return view('frontend.default.user.freelancer.projects.my_completed_project', compact('completed_projects'));
-        } elseif(comprehensive()){
-            $projects = Project::where('client_user_id', Auth::user()->id)->closed()->latest()->paginate(10);
-            return view('frontend.default.user.client.projects.my_completed_project', compact('projects'));  
         }
     }
 
