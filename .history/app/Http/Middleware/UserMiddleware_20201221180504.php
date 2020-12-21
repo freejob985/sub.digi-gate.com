@@ -21,7 +21,7 @@ class UserMiddleware
             return $next($request);
         }
         else{
-          //  dd("Catch errors for script and full tracking ( 2 )");
+            dd("Catch errors for script and full tracking ( 2 )");
             session(['link' => url()->current()]);
             return redirect()->route('user.login');
         }
