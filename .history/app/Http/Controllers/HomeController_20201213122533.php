@@ -88,9 +88,6 @@ if(Session::get('locale')==""){
         elseif(isClient()){
             return view('frontend.default.user.client.dashboard');
         }
-        elseif(isClient()){
-            return view('frontend.default.user.client.comprehensive');
-        }
         else {
             abort(404);
         }
