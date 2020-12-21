@@ -201,7 +201,7 @@ class PackageController extends Controller
             }
             elseif (comprehensive()) {
                 $packages = Package::where('type', strtolower(Role::findOrFail(Session::get('role_id'))->name))->where('active', '1')->get();
-                return view('frontend.default.user.freelancer.comprehensive', compact('packages'));
+                return view('frontend.default.user.comprehensive.package_select', compact('packages'));
             }
         }
         else {

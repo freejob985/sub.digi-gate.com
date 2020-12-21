@@ -199,9 +199,9 @@ class PackageController extends Controller
                 $packages = Package::where('type', strtolower(Role::findOrFail(Session::get('role_id'))->name))->where('active', '1')->get();
                 return view('frontend.default.user.freelancer.package_select', compact('packages'));
             }
-            elseif (comprehensive()) {
+            elseif (isFreelancer()) {
                 $packages = Package::where('type', strtolower(Role::findOrFail(Session::get('role_id'))->name))->where('active', '1')->get();
-                return view('frontend.default.user.freelancer.comprehensive', compact('packages'));
+                return view('frontend.default.user.freelancer.package_select', compact('packages'));
             }
         }
         else {
