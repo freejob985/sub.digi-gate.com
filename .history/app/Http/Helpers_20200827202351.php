@@ -154,14 +154,6 @@ if (!function_exists('isClient')) {
     }
 }
 
-if (!function_exists('comprehensive')) {
-    function isClient()
-    {
-        return getUserRole() == "comprehensive" ? 1 : 0;
-    }
-}
-
-
 if (!function_exists('isFreelancer')) {
     function isFreelancer()
     {

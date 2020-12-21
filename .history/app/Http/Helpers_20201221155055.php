@@ -157,7 +157,7 @@ if (!function_exists('isClient')) {
 if (!function_exists('comprehensive')) {
     function isClient()
     {
-        return getUserRole() == "comprehensive" ? 1 : 0;
+        return getUserRole() == "Client" ? 1 : 0;
     }
 }
 

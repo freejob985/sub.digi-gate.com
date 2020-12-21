@@ -62,7 +62,7 @@
                                 <li class="nav-item ml-xl-3">
                                     <a class="btn btn-primary" href="{{ route('register') }}">{{ translate('Get Started') }}</a>
                                 </li>
-                            @elseif (isClient() || isFreelancer() ||  comprehensive() )
+                            @elseif (isClient() || isFreelancer())
                                 <li class="dropdown d-none d-lg-block">
                                     <a class="dropdown-toggle no-arrow position-relative p-2" data-toggle="dropdown" href="javascript:void(0);" role="button" aria-haspopup="false" aria-expanded="false">
                                         <i class="las la-bell la-2x"></i>
@@ -139,7 +139,7 @@
                                                     <a href="{{ route('all.messages') }}" class="chat-user-item p-3 d-block text-inherit hov-bg-soft-primary">
                                                         <div class="media">
                                                             <span class="avatar avatar-sm mr-3 flex-shrink-0">
-                                                                @if (isClient() or comprehensive() )
+                                                                @if (isClient() or comprehensive )
                                                                     @if ($chat->chatThread->receiver->photo != null)
                                                                     <img src="{{ custom_asset($chat->chatThread->receiver->photo) }}">
                                                                     @else
@@ -164,7 +164,7 @@
                                                                 @endif
                                                             </span>
                                                             <div class="media-body minw-0">
-                                                                @if (isClient() or comprehensive())
+                                                                @if (isClient())
                                                                     <h6 class="mt-0 mb-1 fs-14 text-truncate">{{ $chat->chatThread->receiver->name }}</h6>
                                                                 @else
                                                                     <h6 class="mt-0 mb-1 fs-14 text-truncate">{{ $chat->chatThread->sender->name }}</h6>
