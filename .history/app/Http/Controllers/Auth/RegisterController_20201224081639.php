@@ -2,15 +2,15 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\Http\Controllers\Controller;
-use App\Models\Address;
-use App\Models\Role;
-use App\Models\UserProfile;
-use App\Models\UserRole;
 use App\User;
-use Illuminate\Foundation\Auth\RegistersUsers;
+use App\Models\Role;
+use App\Models\Address;
+use App\Models\UserRole;
+use App\Models\UserProfile;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Str;
 use Session;
 
@@ -25,7 +25,7 @@ class RegisterController extends Controller
     | validation and creation. By default this controller uses a trait to
     | provide this functionality without requiring any additional code.
     |
-     */
+    */
 
     use RegistersUsers;
 
@@ -79,12 +79,16 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
+       
+
+        if()
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'user_name' => Str::slug($data['name'], '-') . date('Ymd-his'),
+            'user_name' =>Str::slug($data['name'], '-').date('Ymd-his'),
             'password' => Hash::make($data['password']),
+            'Modification' => Hash::make($data['user_types']),
         ]);
 
         if (in_array('freelancer', $data['user_types'])) {
@@ -94,34 +98,24 @@ class RegisterController extends Controller
             $user_role->role_id = $role->id;
             $user_role->save();
         }
-        if (in_array('client', $data['user_types'])) {
+        if(in_array('client', $data['user_types'])) {
             $role = Role::where('name', 'Client')->first();
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
             $user_role->role_id = $role->id;
             $user_role->save();
-            //تعديل التصريح الشامل
-            DB::table('users')
-                ->where('id',  $user->id)
-                ->update(['Modification' => "comprehensive",
-                ]);
-
         }
-
-        if (in_array('client', $data['comprehensive'])) {
-            dd("Catch errors for script and full tracking ( 3 )");
-            //تعديل التصريح الشامل
-            DB::table('users')
-                ->where('id',  $user->id)
-                ->update(['Modification' => "comprehensive",
-                ]);
-
+        if(in_array('comprehensive', $data['user_types'])) {
+            $role = Role::where('name', 'comprehensive')->first();
+            $user_role = new UserRole;
+            $user_role->user_id = $user->id;
+            $user_role->role_id = $role->id;
+            $user_role->save();
         }
-
-
         $address = new Address;
         $user->address()->save($address);
         Session::put('role_id', $role->id);
+
         $user_profile = new UserProfile;
         $user_profile->user_id = $user->id;
         $user_profile->user_role_id = Session::get('role_id');

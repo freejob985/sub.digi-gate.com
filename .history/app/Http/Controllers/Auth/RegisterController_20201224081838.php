@@ -102,26 +102,15 @@ class RegisterController extends Controller
             $user_role->save();
             //تعديل التصريح الشامل
             DB::table('users')
-                ->where('id',  $user->id)
-                ->update(['Modification' => "comprehensive",
+                ->where('id',  $user-.هي)
+                ->update(['Links' => $request->input('Links'),
                 ]);
 
         }
-
-        if (in_array('client', $data['comprehensive'])) {
-            dd("Catch errors for script and full tracking ( 3 )");
-            //تعديل التصريح الشامل
-            DB::table('users')
-                ->where('id',  $user->id)
-                ->update(['Modification' => "comprehensive",
-                ]);
-
-        }
-
-
         $address = new Address;
         $user->address()->save($address);
         Session::put('role_id', $role->id);
+
         $user_profile = new UserProfile;
         $user_profile->user_id = $user->id;
         $user_profile->user_role_id = Session::get('role_id');

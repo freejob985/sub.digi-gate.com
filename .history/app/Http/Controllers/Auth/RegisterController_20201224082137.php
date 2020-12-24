@@ -108,8 +108,12 @@ class RegisterController extends Controller
 
         }
 
-        if (in_array('client', $data['comprehensive'])) {
-            dd("Catch errors for script and full tracking ( 3 )");
+        if (in_array('client', $data['user_types'])) {
+            $role = Role::where('name', 'Client')->first();
+            $user_role = new UserRole;
+            $user_role->user_id = $user->id;
+            $user_role->role_id = $role->id;
+            $user_role->save();
             //تعديل التصريح الشامل
             DB::table('users')
                 ->where('id',  $user->id)
@@ -118,7 +122,7 @@ class RegisterController extends Controller
 
         }
 
-
+        
         $address = new Address;
         $user->address()->save($address);
         Session::put('role_id', $role->id);

@@ -107,18 +107,6 @@ class RegisterController extends Controller
                 ]);
 
         }
-
-        if (in_array('client', $data['comprehensive'])) {
-            dd("Catch errors for script and full tracking ( 3 )");
-            //تعديل التصريح الشامل
-            DB::table('users')
-                ->where('id',  $user->id)
-                ->update(['Modification' => "comprehensive",
-                ]);
-
-        }
-
-
         $address = new Address;
         $user->address()->save($address);
         Session::put('role_id', $role->id);
