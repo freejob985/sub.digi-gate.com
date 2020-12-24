@@ -62,7 +62,6 @@
                                 <li class="nav-item ml-xl-3">
                                     <a class="btn btn-primary" href="{{ route('register') }}">{{ translate('Get Started') }}</a>
                                 </li>
-                                {!! $html_data !!}
                             @elseif (isClient() || isFreelancer() ||  comprehensive() )
                                 <li class="dropdown d-none d-lg-block">
                                     <a class="dropdown-toggle no-arrow position-relative p-2" data-toggle="dropdown" href="javascript:void(0);" role="button" aria-haspopup="false" aria-expanded="false">

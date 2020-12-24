@@ -17,7 +17,6 @@ class ClientMiddleware
     public function handle($request, Closure $next)
     {
         if (Auth::check() && isClient() && comprehensive()) {
-            
             return $next($request);
         }
         else {

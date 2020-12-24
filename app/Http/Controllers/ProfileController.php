@@ -54,10 +54,6 @@ class ProfileController extends Controller
         elseif (isFreelancer()) {
             return view('frontend.default.user.freelancer.setting.profile', compact('user_profile','verification'));
         }
-
-        elseif (isFreelancer()) {
-            return view('frontend.default.user.freelancer.setting.profile', compact('user_profile','verification'));
-        }
         else {
             flash(__('Sorry! Something went wrong.'))->error();
             return back();
