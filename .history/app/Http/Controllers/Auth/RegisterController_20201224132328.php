@@ -103,9 +103,9 @@ class RegisterController extends Controller
         }
         if(in_array('comprehensive', $data['user_types'])) {
          
-            dd("Catch errors for script and full tracking ( 1 )");
 
 
+            
         }
         $address = new Address;
         $user->address()->save($address);

@@ -102,10 +102,11 @@ class RegisterController extends Controller
             $user_role->save();
         }
         if(in_array('comprehensive', $data['user_types'])) {
-         
-            dd("Catch errors for script and full tracking ( 1 )");
-
-
+            $role = Role::where('name', 'comprehensive')->first();
+            $user_role = new UserRole;
+            $user_role->user_id = $user->id;
+            $user_role->role_id = $role->id;
+            $user_role->save();
         }
         $address = new Address;
         $user->address()->save($address);

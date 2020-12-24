@@ -61,7 +61,7 @@ class User extends Authenticatable
 
     public function verifications()
     {
-                       return $this->hasMany(Verification::class);
+        return $this->hasMany(Verification::class);
     }
 
     public function workExperiences()
@@ -70,14 +70,14 @@ class User extends Authenticatable
     }
 
     public function userRoles()
-    {  
-         return $this->hasMany(UserRole::class);
+    {
+        return $this->hasMany(UserRole::class);
     }
 
     public function userPortfolios()
     {
-          return $this->hasMany(Portfolio::class);
-    }  
+        return $this->hasMany(Portfolio::class);
+    }
 
     public function userVerifications()
     {
