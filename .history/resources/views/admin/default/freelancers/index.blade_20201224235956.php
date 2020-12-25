@@ -64,6 +64,7 @@
                                 @endif
                                 <td>
                                     @if ($freelancer->user->userPackage != null && $freelancer->user->userPackage->package != null)
+                                      @dd($freelancer->user->userPackage->package->name);
                                     {{$freelancer->user->userPackage->package->name}}
                                     @else
                                         {{translate('Package Removed')}}
