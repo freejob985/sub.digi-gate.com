@@ -37,12 +37,19 @@ class BookmarkedClientController extends Controller
      */
     public function store($id)
     {
+        dd("Catch errors for script and full tracking ( 4 )");
         $userPackage = Auth::user()->userPackage;
+        dd("Catch errors for script and full tracking ( 1 )   ".$userPackage);
+        dd("Catch errors for script and full tracking ( 1 )   ".$userPackage->following_status);
+
+
         if($userPackage->following_status){
+            dd("Catch errors for script and full tracking ( 2 )");
             $bookmarked_client = new BookmarkedClient;
             $bookmarked_client->user_id = Auth::user()->id;
             $bookmarked_client->client_user_id = decrypt($id);
             $bookmarked_client->save();
+            
         }
         else {
             flash('Clinet following option is not available on your package.')->warning();

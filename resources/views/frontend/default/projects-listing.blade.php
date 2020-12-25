@@ -175,7 +175,7 @@
                                         <div class="flex-grow-1">
                                             <h5 class="h6 fw-600 lh-1-5">{{ $project->name }}</h5>
                                             <div class="text-muted lh-1-8">
-                                                <p>{{ $project->excerpt }}</p>
+                                                <p>{{ function_that_shortens_text_but_doesnt_cutoff_words($project->excerpt,600) }}</p>
                                             </div>
                                             <ul class="list-inline opacity-70 fs-12">
                                                 <li class="list-inline-item">

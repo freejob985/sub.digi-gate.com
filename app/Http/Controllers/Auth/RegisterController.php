@@ -2,15 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
-use App\User;
-use App\Models\Role;
-use App\Models\Address;
-use App\Models\UserRole;
-use App\Models\UserProfile;
 use App\Http\Controllers\Controller;
+use App\Models\Address;
+use App\Models\Role;
+use App\Models\UserProfile;
+use App\Models\UserRole;
+use App\User;
+use DB;
+use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Foundation\Auth\RegistersUsers;
 use Illuminate\Support\Str;
 use Session;
 
@@ -25,7 +26,7 @@ class RegisterController extends Controller
     | validation and creation. By default this controller uses a trait to
     | provide this functionality without requiring any additional code.
     |
-    */
+     */
 
     use RegistersUsers;
 
@@ -79,11 +80,12 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        // dd($data);
+
+        //dd($data);
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
-            'user_name' =>Str::slug($data['name'], '-').date('Ymd-his'),
+            'user_name' => Str::slug($data['name'], '-') . date('Ymd-his'),
             'password' => Hash::make($data['password']),
         ]);
 
@@ -94,17 +96,26 @@ class RegisterController extends Controller
             $user_role->role_id = $role->id;
             $user_role->save();
         }
-        if(in_array('client', $data['user_types'])) {
+        if (in_array('client', $data['user_types'])) {
             $role = Role::where('name', 'Client')->first();
             $user_role = new UserRole;
             $user_role->user_id = $user->id;
             $user_role->role_id = $role->id;
             $user_role->save();
         }
-        if(in_array('comprehensive', $data['comprehensive'])) {
-         
-            dd("Catch errors for script and full tracking ( 1 )");
 
+        if (in_array('comprehensive', $data['user_types'])) {
+            $role = Role::where('name', 'Client')->first();
+            $user_role = new UserRole;
+            $user_role->user_id = $user->id;
+            $user_role->role_id = $role->id;
+            $user_role->save();
+
+            DB::table('users')
+                ->where('id', $user->id)
+                ->update([
+                    'comprehensive' => 1,
+                ]);
 
         }
         $address = new Address;

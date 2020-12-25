@@ -184,7 +184,7 @@
 
         									<ul class="list-inline opacity-70 fs-12">
         										<li class="list-inline-item">
-        											<i class="las la-clock opacity-40"></i>
+                                                    <i class="las la-clock opacity-40"></i>
         											<span>{{ Carbon\Carbon::parse($similar_type_project->created_at)->diffForHumans() }}</span>
         										</li>
         										<li class="list-inline-item">

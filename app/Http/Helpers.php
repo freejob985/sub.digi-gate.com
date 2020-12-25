@@ -15,6 +15,18 @@ if (!function_exists('areActiveRoutes')) {
     }
 }
 
+
+function function_that_shortens_text_but_doesnt_cutoff_words($text, $length)
+{
+    if(strlen($text) > $length) {
+        $text = substr($text, 0, strpos($text, ' ', $length));
+    }
+
+    return $text;
+}
+
+
+
 function saveJSONFile($code, $data)
 {
     ksort($data);

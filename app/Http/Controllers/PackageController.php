@@ -190,8 +190,18 @@ class PackageController extends Controller
     //Show specific user packages
     public function select_package()
     {
+
+
+
+      //  dd(Auth::user()->comprehensive);
         if (Auth::check()) {
-            if (isClient()) {
+            if (Auth::user()->comprehensive==="1") {
+             //  dd("Catch errors for script and full tracking ( 2 )");
+                $packages = Package::where('active', '1')->get();
+                return view('frontend.default.user.freelancer.comprehensive', compact('packages'));
+            }
+            elseif (isClient()) {
+              //  dd("Catch errors for script and full tracking ( 5 )");
                 $packages = Package::where('type', strtolower(Role::findOrFail(Session::get('role_id'))->name))->where('active', '1')->get();
                 return view('frontend.default.user.client.package_select', compact('packages'));
             }
@@ -200,6 +210,10 @@ class PackageController extends Controller
                 return view('frontend.default.user.freelancer.package_select', compact('packages'));
             }
             elseif (comprehensive()) {
+                $packages = Package::where('active', '1')->get();
+                return view('frontend.default.user.freelancer.comprehensive', compact('packages'));
+            }elseif (Auth::user()->comprehensive==="1") {
+         //       dd("Catch errors for script and full tracking ( 2 )");
                 $packages = Package::where('active', '1')->get();
                 return view('frontend.default.user.freelancer.comprehensive', compact('packages'));
             }

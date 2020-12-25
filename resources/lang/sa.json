@@ -381,7 +381,7 @@
     "Hourly Rate": "المعدل بالساعة",
     "How it Works Section": "قسم كيف يعمل",
     "I want to Hire": "اضافه مشروع",
-    "I want to Work": "اريد ان اعمل",
+    "I want to Work": "إضافة خدمة",
     "ID": "ID",
     "Icon": "أيقونة",
     "Identity Verification": "التحقق من الهوية",
@@ -905,5 +905,6 @@
     "Your withdrawal history": "تاريخ مرات السحب خاصتك",
     "Zip File": "Zip File",
     "404": "404",
-    "500": "500"
+    "500": "500",
+     "ago": "agoago"
 }

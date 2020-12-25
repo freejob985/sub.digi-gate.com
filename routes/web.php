@@ -48,12 +48,9 @@ Route::post('/cities/get_city_by_country', 'CityController@get_city_by_country')
 Route::group(['middleware' => ['user']], function(){
     Route::post('/package/get-package-purchase-modal', 'PackageController@get_package_purchase_modal')->name('get_package_purchase_modal');
     Route::get('/packages/free-package-purchase/{id}', 'PackageController@package_purchase_free')->name('package_purchase_free');
-
     Route::post('/packages/get-package-purchase-modal', 'ProjectController@get_bid_modal')->name('get_bid_for_project_modal');
-
 	//Purchase PackagePayment
 	Route::post('purchase-package/payment', 'PackagePaymentController@purchase_package')->name('purchase_package');
-
     Route::get('send-verification-request', 'HomeController@send_email_verification_request')->name('email.verification');
     Route::get('verification-confirmation/{code}', 'HomeController@verification_confirmation')->name('email.verification.confirmation');
 });
@@ -174,21 +171,16 @@ Route::group(['middleware' => ['auth', 'freelancer', 'packagePurchased']], funct
 	Route::post('/partial-payment-request-store', 'MilestonePaymentController@request_store')->name('partial_payment_request');
 	Route::get('/sent-milestone-requests', 'MilestonePaymentController@sent_milestone_request_index')->name('sent-milestone-requests.all');
 	Route::get('/recieved-milestone-payment', 'MilestonePaymentController@recieved_milestone_payment_index')->name('recieved_milestone_payment_index');
-
-
 	//payment history
 	Route::get('/send-withdrawal-request', 'PaytoFreelancerController@send_withdrawal_request_index')->name('send_withdrawal_request_to_admin');
 	Route::get('/withdrawal-history', 'PaytoFreelancerController@withdrawal_history_index')->name('withdrawal_history_index');
 	Route::post('/send-withdrawal-request/store', 'PaytoFreelancerController@send_withdrawal_request_store')->name('store_withdrawal_request_to_admin');
-
     Route::resource('bookmarked-projects', 'BookmarkedProjectController');
     Route::get('/bookmarked-projects/store/{id}', 'BookmarkedProjectController@store')->name('bookmarked-projects.store');
     Route::get('/bookmarked-projects/destroy/{id}', 'BookmarkedProjectController@destroy')->name('bookmarked-projects.destroy');
-
     Route::get('/following-clients', 'BookmarkedClientController@index')->name('bookmarked-clients.index');
     Route::get('/following-clients/store/{id}', 'BookmarkedClientController@store')->name('bookmarked-clients.store');
 	Route::get('/following-clients/destroy/{id}', 'BookmarkedClientController@destroy')->name('bookmarked-clients.destroy');
-
 	Route::get('/services', 'ServiceController@freelancer_index')->name('service.freelancer_index');
 	Route::get('services/purchased', 'ServiceController@sold_services')->name('service.sold');
 });
