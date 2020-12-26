@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Role;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -16,11 +17,12 @@ class AdminMiddleware
      */
     public function handle($request, Closure $next)
     {
-        if (Auth::check() && (auth()->user()->userRoles->first()->role->name == "Admin" || auth()->user()->userRoles->first()->role->role_type == "employee" )) {
+        if(Auth::check() && Auth::user()->isAdmin())
+        {
             return $next($request);
-        }
-        else {
-            return redirect()->route('admin.login');
+
+        }else{
+            return redirect()->route('login');
         }
     }
 }

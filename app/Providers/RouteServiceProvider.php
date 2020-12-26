@@ -2,8 +2,8 @@
 
 namespace App\Providers;
 
-use Illuminate\Support\Facades\Route;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
+use Illuminate\Support\Facades\Route;
 
 class RouteServiceProvider extends ServiceProvider
 {
@@ -15,6 +15,20 @@ class RouteServiceProvider extends ServiceProvider
      * @var string
      */
     protected $namespace = 'App\Http\Controllers';
+    protected $redirectTo = 'user/subscriptions/12/edit';
+
+    /**
+     * The path to the "home" route for your application.
+     *
+     * @var string
+     */
+
+
+
+    
+    public const HOME =  'user/subscriptions/12/edit';
+
+    //public const HOME = '/home';
 
     /**
      * Define your route model bindings, pattern filters, etc.
@@ -24,6 +38,15 @@ class RouteServiceProvider extends ServiceProvider
     public function boot()
     {
         //
+        
+         $url = \Request::url();
+    $check = strstr($url,"http://");
+    if($check)
+    {
+       $newUrl = str_replace("http","https",$url);
+       header("Location:".$newUrl);
+
+    }
 
         parent::boot();
     }
@@ -37,46 +60,10 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->mapApiRoutes();
 
-        $this->mapAdminRoutes();
-
-        $this->mapSupportTicketRoutes();
-
         $this->mapWebRoutes();
 
-        $this->mapOfflinePaymentRoutes();
-
-        //$this->mapInstallRoutes();
-
-        //$this->mapUpdateRoutes();
+        //
     }
-
-    /**
-   * Define the "updating" routes for the application.
-   *
-   * These routes all receive session state, CSRF protection, etc.
-   *
-   * @return void
-   */
-   protected function mapUpdateRoutes()
-   {
-      Route::middleware('web')
-        ->namespace($this->namespace)
-        ->group(base_path('routes/update.php'));
-   }
-
-  /**
-   * Define the "installation" routes for the application.
-   *
-   * These routes all receive session state, CSRF protection, etc.
-   *
-   * @return void
-   */
-   protected function mapInstallRoutes()
-   {
-      Route::middleware('web')
-        ->namespace($this->namespace)
-        ->group(base_path('routes/install.php'));
-   }
 
     /**
      * Define the "web" routes for the application.
@@ -90,27 +77,6 @@ class RouteServiceProvider extends ServiceProvider
         Route::middleware('web')
              ->namespace($this->namespace)
              ->group(base_path('routes/web.php'));
-    }
-
-    protected function mapAdminRoutes()
-    {
-        Route::middleware('web')
-           ->namespace($this->namespace)
-           ->group(base_path('routes/admin.php'));
-    }
-
-    protected function mapSupportTicketRoutes()
-    {
-        Route::middleware('web')
-           ->namespace($this->namespace)
-           ->group(base_path('routes/support_tickets.php'));
-    }
-
-    protected function mapOfflinePaymentRoutes()
-    {
-        Route::middleware('web')
-            ->namespace($this->namespace)
-            ->group(base_path('routes/offline_payment.php'));
     }
 
     /**

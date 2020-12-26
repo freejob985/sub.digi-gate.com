@@ -3,18 +3,24 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Foundation\Auth\AuthenticatesUsers;
-use Illuminate\Http\Request;
-use Socialite;
-use Session;
+use App\Plan;
+use App\Providers\RouteServiceProvider;
+use App\Role;
+use App\Setting;
+use App\SocialiteAccount;
+use App\SocialLogin;
+use App\Subscription;
 use App\User;
-use App\Models\Role;
-use App\Models\Address;
-use App\Models\UserRole;
-use App\Models\UserProfile;
-use Illuminate\Support\Str;
-use CoreComponentRepository;
-
+use Artesaos\SEOTools\Facades\SEOMeta;
+use Carbon\Carbon;
+use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\URL;
+use Laravel\Socialite\Facades\Socialite;
+use Illuminate\Http\Request;
+ 
+ 
 class LoginController extends Controller
 {
     /*
@@ -35,120 +41,9 @@ class LoginController extends Controller
      *
      * @var string
      */
-    // protected $redirectTo = '/home';
-
-    public function redirectToProvider($provider)
-    {
-        return Socialite::driver($provider)->redirect();
-    }
-
-    /**
-     * Show the application's login form.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function showLoginForm()
-    {
-        return view('frontend.default.user_login');
-    }
-
-    public function handleProviderCallback(Request $request, $provider)
-    {
-        try {
-            if($provider == 'twitter'){
-                $user = Socialite::driver('twitter')->user();
-            }
-            else{
-                $user = Socialite::driver($provider)->stateless()->user();
-            }
-        } catch (\Exception $e) {
-            flash("Something Went wrong. Try again.")->error();
-            return redirect()->route('user.login');
-        }
-
-        // check if they're an existing user
-        $existingUser = User::where('provider_id', $user->id)->orWhere('email', $user->email)->first();
-        if($existingUser){
-            // log them in
-            auth()->login($existingUser, true);
-        } else {
-            // create a new user
-            $newUser                  = new User;
-            $newUser->name            = $user->name;
-            $newUser->user_name       = Str::slug($user->name, '-').date('Ymd-his');;
-            $newUser->email           = $user->email;
-            $newUser->provider_id     = $user->id;
-
-            $newUser->save();
-
-
-            $role = Role::where('name', 'Freelancer')->first();
-            $user_role = new UserRole;
-            $user_role->user_id = $newUser->id;
-            $user_role->role_id = $role->id;
-            $user_role->save();
-
-            Session::put('role_id', $role->id);
-
-            $user_profile = new UserProfile;
-            $user_profile->user_id = $newUser->id;
-            $user_profile->user_role_id = $role->id;
-            $user_profile->save();
-
-            $address = new Address;
-            $newUser->address()->save($address);
-
-            auth()->login($newUser, true);
-        }
-        if(session('link') != null){
-            return redirect(session('link'));
-        }
-        else{
-            return redirect()->route('dashboard');
-        }
-    }
-
-
-    public function authenticated()
-    {
-        if(auth()->user()->userRoles->first()->role->name == "Admin" || auth()->user()->userRoles->first()->role->role_type == "employee")
-        {
-            CoreComponentRepository::instantiateShopRepository();
-            return redirect()->route('admin.dashboard');
-        }
-        else {
-            if(auth()->user()->banned){
-                flash('You are banned')->warning();
-                return redirect()->route('home');
-            }
-            $role_id = auth()->user()->userRoles->first()->role_id;
-            $user_profile = UserProfile::where('user_id', auth()->user()->id)->where('user_role_id', $role_id)->first();
-            Session::put('role_id', $role_id);
-
-            if(session('link') != null){
-                return redirect(session('link'));
-            }
-            else{
-                return redirect()->route('dashboard');
-            }
-        }
-    }
-
-    public function logout(Request $request)
-    {
-        if(auth()->user() != null && (auth()->user()->userRoles != null && auth()->user()->userRoles->first()->role->name == "Admin" || auth()->user()->userRoles->first()->role->role_type == "employee")){
-            $redirect_route = 'admin.login';
-        }
-        else{
-            $redirect_route = 'dashboard';
-        }
-
-        $this->guard()->logout();
-
-        $request->session()->invalidate();
-
-        return $this->loggedOut($request) ?: redirect()->route($redirect_route);
-    }
+    protected $redirectTo = RouteServiceProvider::HOME;
+    
+    protected $username = 'mobil';
 
     /**
      * Create a new controller instance.
@@ -158,5 +53,457 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+
+        /**
+         * Start SEO
+         */
+        $settings = Setting::find(1);
+        //SEOMeta::setTitle('Login - ' . (empty($settings->setting_site_name) ? config('app.name', 'Laravel') : $settings->setting_site_name));
+        SEOMeta::setTitle(__('seo.auth.login', ['site_name' => empty($settings->setting_site_name) ? config('app.name', 'Laravel') : $settings->setting_site_name]));
+        SEOMeta::setDescription('');
+        SEOMeta::setCanonical(URL::current());
+        SEOMeta::addKeyword($settings->setting_site_seo_home_keywords);
+        /**
+         * End SEO
+         */
+    }
+
+    protected function authenticated($request, $user)
+    {
+        // dd($user);
+        if ($user->isAdmin())
+        {
+            //$this->redirectTo = route('admin.index');
+            $this->redirectTo = route('page.home');
+        }
+
+        if ($user->isUser())
+        {
+            //$this->redirectTo = route('user.index');
+            $this->redirectTo = route('page.home');
+        }
+    }
+    
+    
+           protected function credentials(Request $request){
+            
+  
+            
+          if(is_numeric($request->get('email'))){
+            return ['mobil'=>$request->get('email'),'password'=>$request->get('password')];
+          }
+          
+          elseif (filter_var($request->get('email'), FILTER_VALIDATE_EMAIL)) {
+            return ['email' => $request->get('email'), 'password'=>$request->get('password')];
+          }
+          return ['name' => $request->get('email'), 'password'=>$request->get('password')];
+        }
+        
+
+    public function showLoginForm()
+    {
+        /**
+         * Start social login
+         */
+        $social_logins = new SocialLogin();
+        $social_login_facebook = $social_logins->isFacebookEnabled();
+        $social_login_google = $social_logins->isGoogleEnabled();
+        $social_login_twitter = $social_logins->isTwitterEnabled();
+        $social_login_linkedin = $social_logins->isLinkedInEnabled();
+        $social_login_github = $social_logins->isGitHubEnabled();
+        /**
+         * End social login
+         */
+ 
+        return view('auth.login',
+            compact('social_login_facebook', 'social_login_google',
+                'social_login_twitter', 'social_login_linkedin', 'social_login_github'));
+                
+               
+    }
+
+    public function redirectToFacebook()
+    {
+        $social_logins = new SocialLogin();
+        $social_login_facebook = $social_logins->getFacebookLogin();
+        if($social_login_facebook->social_login_enabled == SocialLogin::SOCIAL_LOGIN_ENABLED)
+        {
+            config(
+                ['services.facebook' => array(
+                    'client_id' => $social_login_facebook->social_login_provider_client_id,
+                    'client_secret' => $social_login_facebook->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.facebook.callback'),
+                )]
+            );
+
+            return Socialite::driver('facebook')->redirect();
+        }
+        else
+        {
+            \Session::flash('flash_message', __('social_login.frontend.error-facebook-disabled'));
+            \Session::flash('flash_type', 'danger');
+
+            return back();
+        }
+
+    }
+
+    public function handleFacebookCallback()
+    {
+        try {
+
+            $social_logins = new SocialLogin();
+            $social_login_facebook = $social_logins->getFacebookLogin();
+
+            if($social_login_facebook->social_login_enabled == SocialLogin::SOCIAL_LOGIN_DISABLED)
+            {
+                \Session::flash('flash_message', __('social_login.frontend.error-facebook-disabled'));
+                \Session::flash('flash_type', 'danger');
+
+                return redirect()->route('login');
+            }
+
+            config(
+                ['services.facebook' => array(
+                    'client_id' => $social_login_facebook->social_login_provider_client_id,
+                    'client_secret' => $social_login_facebook->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.facebook.callback'),
+                )]
+            );
+
+            $user = Socialite::driver('facebook')->user();
+
+            $find_user = $this->createOrGetSocialLoginUser($user, SocialLogin::SOCIAL_LOGIN_FACEBOOK);
+
+            Auth::login($find_user);
+
+            return redirect()->route('page.home');
+
+        }
+        catch(Exception $e)
+        {
+            \Session::flash('flash_message', __('social_login.error-facebook-callback'));
+            \Session::flash('flash_type', 'danger');
+
+            return redirect()->route('login');
+        }
+    }
+
+    public function redirectToGoogle()
+    {
+        $social_logins = new SocialLogin();
+        $social_login_google = $social_logins->getGoogleLogin();
+        if($social_login_google->social_login_enabled == SocialLogin::SOCIAL_LOGIN_ENABLED)
+        {
+            config(
+                ['services.google' => array(
+                    'client_id' => $social_login_google->social_login_provider_client_id,
+                    'client_secret' => $social_login_google->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.google.callback'),
+                )]
+            );
+
+            return Socialite::driver('google')->redirect();
+        }
+        else
+        {
+            \Session::flash('flash_message', __('social_login.frontend.error-google-disabled'));
+            \Session::flash('flash_type', 'danger');
+
+            return back();
+        }
+    }
+
+
+
+public function Mobil()
+{
+    return 'Mobil'; //or return the field which you want to use.
+}
+    public function handleGoogleCallback()
+    {
+        try {
+
+            $social_logins = new SocialLogin();
+            $social_login_google = $social_logins->getGoogleLogin();
+
+            if($social_login_google->social_login_enabled == SocialLogin::SOCIAL_LOGIN_DISABLED)
+            {
+                \Session::flash('flash_message', __('social_login.frontend.error-google-disabled'));
+                \Session::flash('flash_type', 'danger');
+
+                return redirect()->route('login');
+            }
+
+            config(
+                ['services.google' => array(
+                    'client_id' => $social_login_google->social_login_provider_client_id,
+                    'client_secret' => $social_login_google->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.google.callback'),
+                )]
+            );
+
+            $user = Socialite::driver('google')->user();
+
+            $find_user = $this->createOrGetSocialLoginUser($user, SocialLogin::SOCIAL_LOGIN_GOOGLE);
+
+            Auth::login($find_user);
+
+            return redirect()->route('page.home');
+
+        }
+        catch(Exception $e)
+        {
+            \Session::flash('flash_message', __('social_login.error-google-callback'));
+            \Session::flash('flash_type', 'danger');
+
+            return redirect()->route('login');
+        }
+    }
+
+    public function redirectToTwitter()
+    {
+        $social_logins = new SocialLogin();
+        $social_login_twitter = $social_logins->getTwitterLogin();
+        if($social_login_twitter->social_login_enabled == SocialLogin::SOCIAL_LOGIN_ENABLED)
+        {
+            config(
+                ['services.google' => array(
+                    'client_id' => $social_login_twitter->social_login_provider_client_id,
+                    'client_secret' => $social_login_twitter->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.twitter.callback'),
+                )]
+            );
+
+            return Socialite::driver('twitter')->redirect();
+        }
+        else
+        {
+            \Session::flash('flash_message', __('social_login.frontend.error-twitter-disabled'));
+            \Session::flash('flash_type', 'danger');
+
+            return back();
+        }
+    }
+    public function handleTwitterCallback()
+    {
+        try {
+
+            $social_logins = new SocialLogin();
+            $social_login_twitter = $social_logins->getTwitterLogin();
+
+            if($social_login_twitter->social_login_enabled == SocialLogin::SOCIAL_LOGIN_DISABLED)
+            {
+                \Session::flash('flash_message', __('social_login.frontend.error-twitter-disabled'));
+                \Session::flash('flash_type', 'danger');
+
+                return redirect()->route('login');
+            }
+
+            config(
+                ['services.twitter' => array(
+                    'client_id' => $social_login_twitter->social_login_provider_client_id,
+                    'client_secret' => $social_login_twitter->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.twitter.callback'),
+                )]
+            );
+
+            $user = Socialite::driver('twitter')->user();
+
+            $find_user = $this->createOrGetSocialLoginUser($user, SocialLogin::SOCIAL_LOGIN_TWITTER);
+
+            Auth::login($find_user);
+
+            return redirect()->route('page.home');
+
+        }
+        catch(Exception $e)
+        {
+            \Session::flash('flash_message', __('social_login.error-twitter-callback'));
+            \Session::flash('flash_type', 'danger');
+
+            return redirect()->route('login');
+        }
+    }
+
+    public function redirectToLinkedIn()
+    {
+        $social_logins = new SocialLogin();
+        $social_login_linkedin = $social_logins->getLinkedInLogin();
+        if($social_login_linkedin->social_login_enabled == SocialLogin::SOCIAL_LOGIN_ENABLED)
+        {
+            config(
+                ['services.linkedin' => array(
+                    'client_id' => $social_login_linkedin->social_login_provider_client_id,
+                    'client_secret' => $social_login_linkedin->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.linkedin.callback'),
+                )]
+            );
+
+            return Socialite::driver('linkedin')->redirect();
+        }
+        else
+        {
+            \Session::flash('flash_message', __('social_login.frontend.error-linkedin-disabled'));
+            \Session::flash('flash_type', 'danger');
+
+            return back();
+        }
+    }
+    public function handleLinkedInCallback()
+    {
+        try {
+
+            $social_logins = new SocialLogin();
+            $social_login_linkedin = $social_logins->getLinkedInLogin();
+
+            if($social_login_linkedin->social_login_enabled == SocialLogin::SOCIAL_LOGIN_DISABLED)
+            {
+                \Session::flash('flash_message', __('social_login.frontend.error-linkedin-disabled'));
+                \Session::flash('flash_type', 'danger');
+
+                return redirect()->route('login');
+            }
+
+            config(
+                ['services.linkedin' => array(
+                    'client_id' => $social_login_linkedin->social_login_provider_client_id,
+                    'client_secret' => $social_login_linkedin->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.linkedin.callback'),
+                )]
+            );
+
+            $user = Socialite::driver('linkedin')->user();
+
+            $find_user = $this->createOrGetSocialLoginUser($user, SocialLogin::SOCIAL_LOGIN_LINKEDIN);
+
+            Auth::login($find_user);
+
+            return redirect()->route('page.home');
+
+        }
+        catch(Exception $e)
+        {
+            \Session::flash('flash_message', __('social_login.error-linkedin-callback'));
+            \Session::flash('flash_type', 'danger');
+
+            return redirect()->route('login');
+        }
+    }
+
+    public function redirectToGitHub()
+    {
+        $social_logins = new SocialLogin();
+        $social_login_github = $social_logins->getGitHubLogin();
+        if($social_login_github->social_login_enabled == SocialLogin::SOCIAL_LOGIN_ENABLED)
+        {
+            config(
+                ['services.github' => array(
+                    'client_id' => $social_login_github->social_login_provider_client_id,
+                    'client_secret' => $social_login_github->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.github.callback'),
+                )]
+            );
+
+            return Socialite::driver('github')->redirect();
+        }
+        else
+        {
+            \Session::flash('flash_message', __('social_login.frontend.error-github-disabled'));
+            \Session::flash('flash_type', 'danger');
+
+            return back();
+        }
+    }
+    public function handleGitHubCallback()
+    {
+        try {
+
+            $social_logins = new SocialLogin();
+            $social_login_github = $social_logins->getGitHubLogin();
+
+            if($social_login_github->social_login_enabled == SocialLogin::SOCIAL_LOGIN_DISABLED)
+            {
+                \Session::flash('flash_message', __('social_login.frontend.error-github-disabled'));
+                \Session::flash('flash_type', 'danger');
+
+                return redirect()->route('login');
+            }
+
+            config(
+                ['services.github' => array(
+                    'client_id' => $social_login_github->social_login_provider_client_id,
+                    'client_secret' => $social_login_github->social_login_provider_client_secret,
+                    'redirect' => route('auth.login.github.callback'),
+                )]
+            );
+
+            $user = Socialite::driver('github')->user();
+
+            $find_user = $this->createOrGetSocialLoginUser($user, SocialLogin::SOCIAL_LOGIN_GITHUB);
+
+            Auth::login($find_user);
+
+            return redirect()->route('page.home');
+
+        }
+        catch(Exception $e)
+        {
+            \Session::flash('flash_message', __('social_login.error-github-callback'));
+            \Session::flash('flash_type', 'danger');
+
+            return redirect()->route('login');
+        }
+    }
+
+    private function createOrGetSocialLoginUser($social_login_user, $social_login_provider)
+    {
+        $social_account = SocialiteAccount::where('socialite_account_provider_name', $social_login_provider)
+            ->where('socialite_account_provider_id', $social_login_user->id)
+            ->get()
+            ->first();
+
+        if($social_account)
+        {
+            return $social_account->user;
+        }
+        else
+        {
+            $new_social_account = new SocialiteAccount([
+                'socialite_account_provider_id' => $social_login_user->id,
+                'socialite_account_provider_name' => $social_login_provider,
+            ]);
+
+            $new_social_account_email = empty($social_login_user->email) ? strtolower($social_login_provider) . "-" . $social_login_user->id . "@mail.com" : $social_login_user->email;
+
+            $find_user = User::where('email', $new_social_account_email)->get()->first();
+
+            if(!$find_user)
+            {
+                $find_user =  User::create([
+                    'name' => $social_login_user->name,
+                    'email' => $new_social_account_email,
+                    'password' => Hash::make(uniqid()),
+                    'role_id'   => Role::USER_ROLE_ID,
+                    'user_suspended' => User::USER_NOT_SUSPENDED,
+                    'email_verified_at' => date("Y-m-d H:i:s"),
+                ]);
+
+                // assign the new user a subscription with free plan
+                $free_plan = Plan::where('plan_type', Plan::PLAN_TYPE_FREE)->get()->first();
+                $free_subscription = new Subscription(array(
+                    'user_id' => $find_user->id,
+                    'plan_id' => $free_plan->id,
+                    'subscription_start_date' => Carbon::now()->toDateString(),
+                    'subscription_max_featured_listing' => 0,
+                ));
+                $new_free_subscription = $find_user->subscription()->save($free_subscription);
+            }
+
+            $new_social_account->user()->associate($find_user);
+            $new_social_account->save();
+
+            return $find_user;
+        }
     }
 }

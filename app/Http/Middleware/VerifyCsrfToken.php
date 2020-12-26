@@ -19,14 +19,6 @@ class VerifyCsrfToken extends Middleware
      * @var array
      */
     protected $except = [
-        'aiz-uploader/upload',
-        '/aiz-uploader',
-        '/sslcommerz/success',
-        '/sslcommerz/cancel',
-        '/sslcommerz/fail',
-        '/sslcommerz/ipn',
-        '/config_content',
-        '/paytm*',
-        '/stripe*'
+        'search', // disable CSRF check for PayPal IPN
     ];
 }

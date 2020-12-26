@@ -3,17 +3,20 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Address;
-use App\Models\Role;
-use App\Models\UserProfile;
-use App\Models\UserRole;
+use App\Plan;
+use App\Role;
+use App\Setting;
+use App\SocialLogin;
+use App\Subscription;
 use App\User;
-use DB;
+use Artesaos\SEOTools\Facades\SEOMeta;
+use Carbon\Carbon;
 use Illuminate\Foundation\Auth\RegistersUsers;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Str;
-use Session;
 
 class RegisterController extends Controller
 {
@@ -35,7 +38,7 @@ class RegisterController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/dashboard';
+    protected $redirectTo = '';
 
     /**
      * Create a new controller instance.
@@ -45,16 +48,17 @@ class RegisterController extends Controller
     public function __construct()
     {
         $this->middleware('guest');
-    }
 
-    /**
-     * Show the application registration form.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function showRegistrationForm()
-    {
-        return view('frontend.default.user_sign_up');
+        /**
+         * Start SEO
+         */
+        $settings = Setting::find(1);
+        //SEOMeta::setTitle('Register - ' . (empty($settings->setting_site_name) ? config('app.name', 'Laravel') : $settings->setting_site_name));
+        SEOMeta::setTitle(__('seo.auth.register', ['site_name' => empty($settings->setting_site_name) ? config('app.name', 'Laravel') : $settings->setting_site_name]));
+        SEOMeta::setDescription('');
+        SEOMeta::setCanonical(URL::current());
+        SEOMeta::addKeyword($settings->setting_site_seo_home_keywords);
+
     }
 
     /**
@@ -65,10 +69,10 @@ class RegisterController extends Controller
      */
     protected function validator(array $data)
     {
+
         return Validator::make($data, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            'password' => ['required', 'string', 'min:6', 'confirmed'],
+            'mobil' => ['required'],
+            'password' => ['required', 'string', 'min:8', 'confirmed'],
         ]);
     }
 
@@ -81,61 +85,62 @@ class RegisterController extends Controller
     protected function create(array $data)
     {
 
-        //dd($data);
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'user_name' => Str::slug($data['name'], '-') . date('Ymd-his'),
-            'password' => Hash::make($data['password']),
-        ]);
+        if (isset($data['Option'])) {
 
-        if (in_array('freelancer', $data['user_types'])) {
-            $role = Role::where('name', 'Freelancer')->first();
-            $user_role = new UserRole;
-            $user_role->user_id = $user->id;
-            $user_role->role_id = $role->id;
-            $user_role->save();
+            $new_user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => bcrypt($data['password']),
+                'role_id' => Role::USER_ROLE_ID,
+                'user_suspended' => User::USER_NOT_SUSPENDED,
+                'Type' => $data['Type'],
+                'mobil' => $data['mobil'],
+            ]);
+
+            // assign the new user a subscription with free plan
+            $free_plan = Plan::where('plan_type', Plan::PLAN_TYPE_FREE)->get()->first();
+            $free_subscription = new Subscription(array(
+                'user_id' => $new_user->id,
+                'plan_id' => $free_plan->id,
+                'subscription_start_date' => Carbon::now()->toDateString(),
+                'subscription_max_featured_listing' => 0,
+            ));
+            $new_free_subscription = $new_user->subscription()->save($free_subscription);
+
+            
+            Auth::login($new_user);
+            $login_user = Auth::user();
+            $subscription = $login_user->subscription()->get()->first();
+
+            $this->redirectTo = "user/subscriptions/$subscription->id/edit";
+
+            return $new_user;
+
+        } else {
+
+            return Redirect::to('/register');
+
         }
-        if (in_array('client', $data['user_types'])) {
-            $role = Role::where('name', 'Client')->first();
-            $user_role = new UserRole;
-            $user_role->user_id = $user->id;
-            $user_role->role_id = $role->id;
-            $user_role->save();
-        }
 
-        if (in_array('comprehensive', $data['user_types'])) {
-            $role = Role::where('name', 'Client')->first();
-            $user_role = new UserRole;
-            $user_role->user_id = $user->id;
-            $user_role->role_id = $role->id;
-            $user_role->save();
-
-            DB::table('users')
-                ->where('id', $user->id)
-                ->update([
-                    'comprehensive' => 1,
-                ]);
-
-        }
-        $address = new Address;
-        $user->address()->save($address);
-        Session::put('role_id', $role->id);
-
-        $user_profile = new UserProfile;
-        $user_profile->user_id = $user->id;
-        $user_profile->user_role_id = Session::get('role_id');
-        $user_profile->save();
-
-        return $user;
     }
 
-    /**
-     * The user has been registered.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  mixed  $user
-     * @return mixed
-     */
+    public function showRegistrationForm()
+    {
+        /**
+         * Start social login
+         */
+        $social_logins = new SocialLogin();
+        $social_login_facebook = $social_logins->isFacebookEnabled();
+        $social_login_google = $social_logins->isGoogleEnabled();
+        $social_login_twitter = $social_logins->isTwitterEnabled();
+        $social_login_linkedin = $social_logins->isLinkedInEnabled();
+        $social_login_github = $social_logins->isGitHubEnabled();
+        /**
+         * End social login
+         */
 
+        return view('auth.register',
+            compact('social_login_facebook', 'social_login_google',
+                'social_login_twitter', 'social_login_linkedin', 'social_login_github'));
+    }
 }

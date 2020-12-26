@@ -1,19 +1,32 @@
-@extends('frontend.default.layouts.app')
+@extends('frontend.layouts.app')
+
+@section('styles')
+@endsection
 
 @section('content')
-<section class="pt-7 pb-6">
-	<div class="container text-center">
-		<div class="row">
-			<div class="col-lg-6 mx-auto text-center">
-				<img src="{{ my_asset('assets/frontend/default/img/419.svg') }}" class="mx-auto mw-100 mb-5" height="180">
-				<h1 class="fw-700">{{ translate('Your session has expired') }}</h1>
-				<p class="lead mb-5">{{ translate('Please refresh the page') }}</p>
-				<a href="{{route('home')}}" class="btn btn-primary mb-5">
-					<i class="la la-arrow-left mr-2"></i>
-					<span>{{ translate('Back to Homepage') }}</span>
-				</a>
-			</div>
-		</div>
-	</div>
-</section>
+
+    <div class="site-blocks-cover inner-page-cover overlay" style="background-image: url({{ asset('frontend/images/placeholder/header-inner.jpg') }});" data-aos="fade" data-stellar-background-ratio="0.5">
+        <div class="container">
+            <div class="row align-items-center justify-content-center text-center">
+
+                <div class="col-md-10" data-aos="fade-up" data-aos-delay="400">
+
+
+                    <div class="row justify-content-center mt-5">
+                        <div class="col-md-10 text-center">
+                            <h1>{{ __('errors.419.title') }}</h1>
+                            <p>{{ __('errors.419.description') }}</p>
+                            <a class="btn btn-warning text-white rounded" href="{{ url()->previous() }}">{{ __('errors.shared.go-back') }}</a>
+                        </div>
+                    </div>
+
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+@endsection
+
+@section('scripts')
 @endsection
